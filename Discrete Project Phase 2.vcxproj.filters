@@ -21,5 +21,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="passes_in_EXCEL_FORMAT.csv" />
+    <None Include="first200.csv" />
   </ItemGroup>
 </Project>
