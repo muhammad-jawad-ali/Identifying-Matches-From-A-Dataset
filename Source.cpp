@@ -54,10 +54,10 @@ public:
 	}
 
 	void insertPass(pass p) {
-		if (p.sender_id >= 1 && p.receiver_id <= 14) {
+		if (p.sender_id >= 1 && p.sender_id <= 14 && p.receiver_id >= 1 && p.receiver_id <= 14) {
 			home_team_passes.push_back(p);
 		}
-		else if (p.sender_id >= 15 && p.receiver_id <= 28) {
+		else if (p.sender_id >= 15 && p.sender_id <= 28 && p.receiver_id >= 15 && p.receiver_id <= 28) {
 			away_team_passes.push_back(p);
 		}
 	}
@@ -171,7 +171,7 @@ public:
 		}
 	}
 
-	void generateSnapShots(int seconds, match m) {
+	void generateSnapShots(int seconds, match m, string folder_TA, string folder_TB) {
 		//adjacency matrix
 		int snap_shot_graph[14][14] = { 0 };
 		int reciever_id;
@@ -186,8 +186,8 @@ public:
 				snap_shot_graph[sender_id - 1][reciever_id - 1]++;
 			}
 			else {
-				string fileName = "home_team_snapshot.txt_" + to_string(snap_shot_number) + ".txt";
-				generateGraphProfile(snap_shot_graph, fileName);
+				string fileName = "home_team_snapshot_" + to_string(snap_shot_number) + ".txt";
+				generateGraphProfile(snap_shot_graph, folder_TA + "/" + fileName);
 				intializeArray(snap_shot_graph);
 				snap_shot_graph[sender_id - 1][reciever_id - 1]++;
 				time_past += m.home_team_passes[i].time_end;
@@ -204,7 +204,7 @@ public:
 			}
 			else {
 				string fileName = "away_team_snapshot_" + to_string(snap_shot_number) + ".txt";
-				generateGraphProfile(snap_shot_graph, fileName);
+				generateGraphProfile(snap_shot_graph, folder_TB + "/" + fileName);
 				intializeArray(snap_shot_graph);
 				snap_shot_graph[sender_id - 15][reciever_id - 15]++;
 				time_past += m.away_team_passes[i].time_end;
@@ -247,11 +247,11 @@ public:
 		return;
 	}
 
-	void generateSnapShots(int seconds, int matchNumber) {
+	void generateSnapShots(int seconds, int matchNumber, string folder_TA, string folder_TB) {
 		int i = 1;
 		for (auto& m : matches) {
 			if (i == matchNumber) {
-				generateSnapShots(seconds, m);
+				generateSnapShots(seconds, m, folder_TA, folder_TB);
 				break;
 			}
 			i++;
@@ -270,13 +270,18 @@ public:
 
 int main() {
 	CSVReader reader("passes_in_EXCEL_FORMAT.csv");
-	reader.printMatchesDataSet();
-	/*int matchNumber, timeWindow;
+	//reader.printMatchesDataSet();
+	string folderPath_TA, folderPath_TB;
+	int matchNumber, timeWindow;
+	cout<<"Enter the folder path to save snapshots (Team A): ";
+	cin >> folderPath_TA;
+	cout<<"Enter the folder path to save snapshots (Team B): ";
+	cin >> folderPath_TB;
 	cout<< "Enter the match number to genrate snapshots: ";
 	cin >> matchNumber;
 	cout<< "Enter the time window in milliseconds: ";
-	cin >> timeWindow;*/
-	reader.generateSnapShots(300000, 2);//timeWindow, matchNumber);
+	cin >> timeWindow;
+	reader.generateSnapShots(timeWindow, matchNumber, folderPath_TA,folderPath_TB);
 	cout << "Program End!!!";
 	return 0;
 }
