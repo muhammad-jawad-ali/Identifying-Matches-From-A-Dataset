@@ -140,7 +140,7 @@ public:
 					insert_success = true;
 					break;
 				}
-				else if (m.last_end_time <= time_start && m.compare(x)) {
+				else if (m.last_end_time <= time_start) {//&& m.compare(x)) {
 					m.insertPass(pass(time_start, time_end, sender_id, receiver_id));
 					m.last_end_time = time_end;
 					insert_success = true;
@@ -166,8 +166,8 @@ public:
 			m.print();
 			i++;
 			cout << endl << endl;
-			char ch;
-			cin >> ch;
+			//char ch;
+			//cin >> ch;
 		}
 	}
 
@@ -181,7 +181,7 @@ public:
 		for (int i = 0; i < m.home_team_passes.size(); i++) {
 			reciever_id = m.home_team_passes[i].receiver_id;
 			sender_id = m.home_team_passes[i].sender_id;
-			time_past += m.home_team_passes[i].time_end;
+			time_past += (m.home_team_passes[i].time_end - m.home_team_passes[i].time_start);
 			if (time_past <= seconds) {
 				snap_shot_graph[sender_id - 1][reciever_id - 1]++;
 			}
@@ -198,7 +198,7 @@ public:
 		for(int i = 0; i < m.away_team_passes.size(); i++) {
 			reciever_id = m.away_team_passes[i].receiver_id;
 			sender_id = m.away_team_passes[i].sender_id;
-			time_past += m.away_team_passes[i].time_end;
+			time_past += (m.away_team_passes[i].time_end - m.away_team_passes[i].time_start);
 			if (time_past <= seconds) {
 				snap_shot_graph[sender_id - 15][reciever_id - 15]++;
 			}
@@ -270,7 +270,7 @@ public:
 
 int main() {
 	CSVReader reader("passes_in_EXCEL_FORMAT.csv");
-	//reader.printMatchesDataSet();
+	reader.printMatchesDataSet();
 	string folderPath_TA, folderPath_TB;
 	int matchNumber, timeWindow;
 	cout<<"Enter the folder path to save snapshots (Team A): ";
