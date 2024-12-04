@@ -3,8 +3,6 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include <variant>
-#include <algorithm>
 #include <list>
 #include <cstdlib>
 using namespace std;
@@ -204,6 +202,7 @@ public:
 				snap_shot_graph[sender_id - 1][reciever_id - 1]++;
 			}
 			else {
+				time_past = 0;
 				ta_c++;
 				string fileName = "home_team_snapshot_" + to_string(snap_shot_number) + ".txt";
 				generateGraphProfile(snap_shot_graph, folder_TA + "/" + fileName);
@@ -222,6 +221,7 @@ public:
 				snap_shot_graph[sender_id - 15][reciever_id - 15]++;
 			}
 			else {
+				time_past = 0;
 				tb_c++;
 				string fileName = "away_team_snapshot_" + to_string(snap_shot_number) + ".txt";
 				generateGraphProfile(snap_shot_graph, folder_TB + "/" + fileName);
@@ -305,13 +305,13 @@ int main() {
 	//reader.printMatchesDataSet();
 	string folderPath_TA = "A:/Matches/Match_1/home_team_graph", folderPath_TB = "A:/Matches/Match_1/away_team_graph", folderPath_PG = "A:/Matches/Match_1/pattern_folder_graph_";
 	string home_team_snapshots_count, away_team_snapshots_count, pattern_graph_count = "1";
-	int matchNumber = 2, timeWindow = 6000, patternGraphs = 9;
-	/*cout<<"Enter the folder path to save snapshots (Team A): ";
+	int matchNumber = 2, timeWindow = 6000, patternGraphs = 8;
+	cout<<"Enter the folder path to save snapshots (Team A): ";
 	cin >> folderPath_TA;
 	cout<<"Enter the folder path to save snapshots (Team B): ";
 	cin >> folderPath_TB;
 	cout<<"Enter the folder path to save snapshots (Pattern Graph): ";
-	cin >> folderPath_PG;*/
+	cin >> folderPath_PG;
 	cout<< "Enter the match number to genrate snapshots: ";
 	cin >> matchNumber;
 	cout << "Enter the time window in milliseconds (recommended greater than: " << reader.getRecommendedTimeWindow(matchNumber) << " ): ";
@@ -320,7 +320,7 @@ int main() {
 	cout << "Snapshots for Team A are saved in folder: " << folderPath_TA << " and total snapshots are " << home_team_snapshots_count << endl;
 	cout << "Snapshots for Team B are saved in folder: " << folderPath_TB << " and total snapshots are " << away_team_snapshots_count << endl;
 	string command;
-	int patternGraphCode[9] = { 1, 12, 121, 123, 121, 1213, 1231, 1232, 1234 };
+	int patternGraphCode[9] = { 1, 12, 121, 123, 1213, 1231, 1232, 1234 };
 	for (int i = 1; i <= patternGraphs; ++i) {
 		cout << "Analysis of pattern graph " << i << " { " << patternGraphCode[i - 1] << " }:\n";
 		cout << "Oberoi Analysis on Team A Snapshots:\n";
@@ -338,6 +338,33 @@ int main() {
 		char ch;
 		cin >> ch;
 	}
+	int a = 0, b = 1;
+	pattern_graph_count = "2";
+	for (int i = 10; i <= 24; ++i) {
+		cout << "Analysis of pattern graph " << i << " { " << patternGraphCode[a] << "->" << patternGraphCode[b] << " }:\n";
+		cout << "Oberoi Analysis on Team A Snapshots:\n";
+		command = "A:/FAST/Smester_3/DISCRETE_STRUCTURES/Project_Phase_1/x64/Debug/Project_Phase_1 " + folderPath_TA + " " + home_team_snapshots_count + " " + folderPath_PG + to_string(i) + " " + pattern_graph_count + " home_team_snapshot_ pattern_graph_";
+		int result = system(command.c_str());
+		if(result == 0) {
+			cout << "Analysis Succesful\n" << endl;
+		}
+		cout << "Oberoi Analysis on Team B Snapshots:\n";
+		command = "A:/FAST/Smester_3/DISCRETE_STRUCTURES/Project_Phase_1/x64/Debug/Project_Phase_1 " + folderPath_TB + " " + away_team_snapshots_count + " " + folderPath_PG + to_string(i) + " " + pattern_graph_count + " away_team_snapshot_ pattern_graph_";
+		result = system(command.c_str());
+		if (result == 0) {
+			cout << "Analysis Succesful\n" << endl;
+		}
+		char ch;
+		cin >> ch;
+		if(b == 3) {
+			a++;
+			b = 0;
+		}
+		else {
+			b++;
+		}
+	}
+
 	cout << "Program End!!!";
 	
 	return 0;
