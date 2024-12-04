@@ -6,6 +6,7 @@
 #include <variant>
 #include <algorithm>
 #include <list>
+#include <cstdlib>
 using namespace std;
 
 
@@ -36,10 +37,17 @@ public:
 	vector<pass> away_team_passes;
 	vector<int> substituteIds;
 	int last_end_time;
+	int last_start_time;
 	bool match_started;
+	int difference;
+	int passes;
+
 	match() {
 		last_end_time = -1;
 		match_started = false;
+		difference = 0;
+		last_start_time = 0;
+		passes = 0;
 	}
 
 	void print() {
@@ -55,10 +63,16 @@ public:
 
 	void insertPass(pass p) {
 		if (p.sender_id >= 1 && p.sender_id <= 14 && p.receiver_id >= 1 && p.receiver_id <= 14) {
+			difference += (p.time_start - last_start_time);
+			passes++;
 			home_team_passes.push_back(p);
+			last_start_time = p.time_start;
 		}
 		else if (p.sender_id >= 15 && p.sender_id <= 28 && p.receiver_id >= 15 && p.receiver_id <= 28) {
+			difference += (p.time_start - last_start_time);
+			passes++;
 			away_team_passes.push_back(p);
+			last_start_time = p.time_start;
 		}
 	}
 
@@ -73,6 +87,10 @@ public:
 			}
 		}
 		return true;
+	}
+
+	int getTimeWindow() {
+		return difference / passes;
 	}
 };
 
@@ -140,7 +158,7 @@ public:
 					insert_success = true;
 					break;
 				}
-				else if (m.last_end_time <= time_start) {//&& m.compare(x)) {
+				else if (m.last_end_time <= time_start && m.compare(x)) {//&& sender_id == m.last_reciever ) {
 					m.insertPass(pass(time_start, time_end, sender_id, receiver_id));
 					m.last_end_time = time_end;
 					insert_success = true;
@@ -166,12 +184,12 @@ public:
 			m.print();
 			i++;
 			cout << endl << endl;
-			//char ch;
-			//cin >> ch;
+			char ch;
+			cin >> ch;
 		}
 	}
 
-	void generateSnapShots(int seconds, match m, string folder_TA, string folder_TB) {
+	void generateSnapShots(int seconds, match m, string folder_TA, string folder_TB, int& ta_c, int& tb_c) {
 		//adjacency matrix
 		int snap_shot_graph[14][14] = { 0 };
 		int reciever_id;
@@ -186,6 +204,7 @@ public:
 				snap_shot_graph[sender_id - 1][reciever_id - 1]++;
 			}
 			else {
+				ta_c++;
 				string fileName = "home_team_snapshot_" + to_string(snap_shot_number) + ".txt";
 				generateGraphProfile(snap_shot_graph, folder_TA + "/" + fileName);
 				intializeArray(snap_shot_graph);
@@ -203,6 +222,7 @@ public:
 				snap_shot_graph[sender_id - 15][reciever_id - 15]++;
 			}
 			else {
+				tb_c++;
 				string fileName = "away_team_snapshot_" + to_string(snap_shot_number) + ".txt";
 				generateGraphProfile(snap_shot_graph, folder_TB + "/" + fileName);
 				intializeArray(snap_shot_graph);
@@ -222,7 +242,7 @@ public:
 		file << comment;
 		for (int i = 0; i < 14; i++) {
 			file << i << " ";
-			comment = "Player " + to_string(i + 1) + "\n";
+			comment = "\"A" + to_string(i + 1) + "\"\n";
 			file << comment;
 		}
 		for (int i = 0; i < 14; ++i) {
@@ -238,7 +258,7 @@ public:
 			if (edges != 0) {
 				for (int j = 0; j < 14; j++) {
 					if (arr[i][j] != 0) {
-						file << i << " " << j << " " << arr[i][j] << endl;
+						file << i << " " << j << endl;//" " << arr[i][j] << endl;
 					}
 				}
 			}
@@ -247,14 +267,26 @@ public:
 		return;
 	}
 
-	void generateSnapShots(int seconds, int matchNumber, string folder_TA, string folder_TB) {
+	void generateSnapShots(int seconds, int matchNumber, string folder_TA, string folder_TB, string& snapshot_count_TA, string& snapshot_count_TB) {
 		int i = 1;
 		for (auto& m : matches) {
 			if (i == matchNumber) {
-				generateSnapShots(seconds, m, folder_TA, folder_TB);
+				int ta_c = 0, tb_c = 0;
+				generateSnapShots(seconds, m, folder_TA, folder_TB, ta_c, tb_c);
+				snapshot_count_TA = to_string(ta_c);
+				snapshot_count_TB = to_string(tb_c);
 				break;
 			}
 			i++;
+		}
+	}
+
+	int getRecommendedTimeWindow(int match) {
+		int i = 1;
+		for (auto& m : matches) {
+			if (i == match) {
+				return m.getTimeWindow();
+			}
 		}
 	}
 
@@ -270,18 +302,43 @@ public:
 
 int main() {
 	CSVReader reader("passes_in_EXCEL_FORMAT.csv");
-	reader.printMatchesDataSet();
-	string folderPath_TA, folderPath_TB;
-	int matchNumber, timeWindow;
-	cout<<"Enter the folder path to save snapshots (Team A): ";
+	//reader.printMatchesDataSet();
+	string folderPath_TA = "A:/Matches/Match_1/home_team_graph", folderPath_TB = "A:/Matches/Match_1/away_team_graph", folderPath_PG = "A:/Matches/Match_1/pattern_folder_graph_";
+	string home_team_snapshots_count, away_team_snapshots_count, pattern_graph_count = "1";
+	int matchNumber = 2, timeWindow = 6000, patternGraphs = 9;
+	/*cout<<"Enter the folder path to save snapshots (Team A): ";
 	cin >> folderPath_TA;
 	cout<<"Enter the folder path to save snapshots (Team B): ";
 	cin >> folderPath_TB;
+	cout<<"Enter the folder path to save snapshots (Pattern Graph): ";
+	cin >> folderPath_PG;*/
 	cout<< "Enter the match number to genrate snapshots: ";
 	cin >> matchNumber;
-	cout<< "Enter the time window in milliseconds: ";
+	cout << "Enter the time window in milliseconds (recommended greater than: " << reader.getRecommendedTimeWindow(matchNumber) << " ): ";
 	cin >> timeWindow;
-	reader.generateSnapShots(timeWindow, matchNumber, folderPath_TA,folderPath_TB);
+	reader.generateSnapShots(timeWindow, matchNumber, folderPath_TA, folderPath_TB, home_team_snapshots_count, away_team_snapshots_count);
+	cout << "Snapshots for Team A are saved in folder: " << folderPath_TA << " and total snapshots are " << home_team_snapshots_count << endl;
+	cout << "Snapshots for Team B are saved in folder: " << folderPath_TB << " and total snapshots are " << away_team_snapshots_count << endl;
+	string command;
+	int patternGraphCode[9] = { 1, 12, 121, 123, 121, 1213, 1231, 1232, 1234 };
+	for (int i = 1; i <= patternGraphs; ++i) {
+		cout << "Analysis of pattern graph " << i << " { " << patternGraphCode[i - 1] << " }:\n";
+		cout << "Oberoi Analysis on Team A Snapshots:\n";
+		command = "A:/FAST/Smester_3/DISCRETE_STRUCTURES/Project_Phase_1/x64/Debug/Project_Phase_1 " + folderPath_TA + " " + home_team_snapshots_count + " " + folderPath_PG + to_string(i) + " " + pattern_graph_count + " home_team_snapshot_ pattern_graph_";
+		int result = system(command.c_str());
+		if (result == 0) {
+			cout << "Analysis Succesful\n" << endl;
+		}
+		cout << "Oberoi Analysis on Team B Snapshots:\n";
+		command = "A:/FAST/Smester_3/DISCRETE_STRUCTURES/Project_Phase_1/x64/Debug/Project_Phase_1 " + folderPath_TB + " " + away_team_snapshots_count + " " + folderPath_PG + to_string(i) + " " + pattern_graph_count + " away_team_snapshot_ pattern_graph_";
+		result = system(command.c_str());
+		if (result == 0) {
+			cout << "Analysis Succesful\n" << endl;
+		}
+		char ch;
+		cin >> ch;
+	}
 	cout << "Program End!!!";
+	
 	return 0;
 }
